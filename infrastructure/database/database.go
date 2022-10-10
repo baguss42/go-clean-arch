@@ -16,11 +16,11 @@ type Config struct {
 	DBName   string
 	SSLMode  string
 
-	MaxOpenConns int
-	MaxIdleConns int
+	MaxOpenConn int
+	MaxIdleConn int
 
-	ConnMaxLifeTime time.Duration
-	MaxIdleTime     time.Duration
+	MaxLifeTime time.Duration
+	MaxIdleTime time.Duration
 }
 
 type Database struct {

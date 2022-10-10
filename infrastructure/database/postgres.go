@@ -29,10 +29,10 @@ func NewPostgres(config Config) *Database {
 		log.Fatal("could not connect postgres database", err)
 	}
 
-	db.SetMaxOpenConns(config.MaxOpenConns)
-	db.SetMaxIdleConns(config.MaxIdleConns)
+	db.SetMaxOpenConns(config.MaxOpenConn)
+	db.SetMaxIdleConns(config.MaxIdleConn)
 
-	db.SetConnMaxLifetime(config.ConnMaxLifeTime)
+	db.SetConnMaxLifetime(config.MaxLifeTime)
 	db.SetConnMaxIdleTime(config.MaxIdleTime)
 
 	return &Database{DB: db}

@@ -1,12 +1,14 @@
 package web
 
 import (
+	"context"
 	"github.com/baguss42/go-clean-arch/app"
 	"github.com/baguss42/go-clean-arch/controller"
 	"github.com/baguss42/go-clean-arch/infrastructure/database"
+	"github.com/baguss42/go-clean-arch/infrastructure/environment"
 	"github.com/baguss42/go-clean-arch/infrastructure/router"
 	"github.com/baguss42/go-clean-arch/infrastructure/router/middleware"
-	"github.com/baguss42/go-clean-arch/service"
+	_interface "github.com/baguss42/go-clean-arch/interface"
 	"log"
 	"net/http"
 	"os"
@@ -15,25 +17,24 @@ import (
 )
 
 func Boot() {
-	engine := app.NewEngine(router.NewMuxRouter())
-	log.Println("starting server ...")
+	env, err := environment.Load("env", "./.env")
+	if err != nil {
+		log.Fatal("could not load environment ", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
 
-	engine.Database = database.NewPostgres(database.Config{
-		Host:     "localhost",
-		Port:     "5432",
-		Username: "postgres",
-		Password: "root",
-		DBName:   "go_clean",
-		SSLMode:  "disable",
-	})
+	db := SetupDatabase(env)
+	ctrl := controller.NewController(ctx, db)
+	r := SetupRouter(ctrl)
 
-	RegisterEndpoints(engine)
+	engine := app.NewEngine(r, db, env, ctx, cancel)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
+	log.Println("starting server ...")
 	go func() {
-		if err := engine.Router.Serve("8080"); err != nil {
+		if err = engine.Start(); err != nil {
 			log.Fatal("could not serve http", err)
 		}
 	}()
@@ -42,25 +43,40 @@ func Boot() {
 	engine.Shutdown()
 }
 
-func RegisterEndpoints(engine *app.Engine) {
-	product := controller.Product{
-		Service: service.NewProductService(engine.Database),
-		Ctx:     engine.Ctx,
-	}
+// SetupDatabase setup for application database
+func SetupDatabase(env *environment.Environment) *database.Database {
+	return database.NewPostgres(database.Config{
+		Host:        env.DBHost,
+		Port:        env.DBPort,
+		Username:    env.DBUsername,
+		Password:    env.DBPassword,
+		DBName:      env.DBName,
+		SSLMode:     env.DBSslMode,
+		MaxOpenConn: env.DBMaxOpenConn,
+		MaxLifeTime: env.DBMaxLifeTime,
+		MaxIdleTime: env.DBMaxIdleTime,
+		MaxIdleConn: env.DBMaxIdleConn,
+	})
+}
 
+// SetupRouter setup routing for application
+func SetupRouter(ctrl *controller.Controller) _interface.Router {
 	middlewares := []middleware.Filter{
 		middleware.Trace(),
 		middleware.Log(),
 	}
 
-	engine.Router.GET("/", Index)
-	engine.Router.POST("/create", middleware.Apply(middleware.WithFilters(product.Create, middlewares...)))
-	engine.Router.GET("/read", middleware.Apply(middleware.WithFilters(product.Read, middlewares...)))
-	engine.Router.POST("/update", middleware.Apply(middleware.WithFilters(product.Update, middlewares...)))
-	engine.Router.POST("/delete", middleware.Apply(middleware.WithFilters(product.Delete, middlewares...)))
-}
+	r := router.NewMuxRouter()
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
-	w.Write([]byte("ok"))
+	r.GET("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	r.POST("/create", middleware.Apply(middleware.WithFilters(ctrl.Product.Create, middlewares...)))
+	r.GET("/read", middleware.Apply(middleware.WithFilters(ctrl.Product.Read, middlewares...)))
+	r.POST("/update", middleware.Apply(middleware.WithFilters(ctrl.Product.Update, middlewares...)))
+	r.POST("/delete", middleware.Apply(middleware.WithFilters(ctrl.Product.Delete, middlewares...)))
+
+	return r
 }
