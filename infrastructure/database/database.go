@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-var postgres = "postgres"
+var (
+	mysql    = "mysql"
+	postgres = "postgres"
+)
 
 type Config struct {
 	Host     string

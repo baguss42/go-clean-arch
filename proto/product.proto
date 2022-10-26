@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "app/grpc/pb";
+
+message ProductRequest {
+  string Title = 1;
+  string Description = 2;
+  int64 Price = 3;
+  int32 Qty = 4;
+}
+
+message ProductResponse {
+  int64 ID = 1;
+  string Title = 2;
+  string Description = 3;
+  int64 Price = 4;
+  int32 Qty = 5;
+}
+
+service Product {
+  rpc Create(ProductRequest) returns (ProductResponse) {}
+}

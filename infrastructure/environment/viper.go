@@ -7,8 +7,9 @@ import (
 
 type Environment struct {
 	// ============== APPLICATION ==================//
-	AppPort string `mapstructure:"APP_PORT"`
-	Env     string `mapstructure:"ENV"`
+	Env      string `mapstructure:"ENV"`
+	HTTPPort string `mapstructure:"HTTP_PORT"`
+	GRPCPort int    `mapstructure:"GRPC_PORT"`
 
 	// ============== DATABASE ==================//
 	DBDriver      string        `mapstructure:"DB_DRIVER"`
