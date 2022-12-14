@@ -2,43 +2,35 @@ package app
 
 import (
 	"context"
-	"github.com/baguss42/go-clean-arch/controller"
 	"github.com/baguss42/go-clean-arch/infrastructure/database"
 	"github.com/baguss42/go-clean-arch/infrastructure/environment"
-	_interface "github.com/baguss42/go-clean-arch/interface"
+	"github.com/baguss42/go-clean-arch/service"
 	"log"
 )
 
 type Engine struct {
-	Router      _interface.Router
+	Context     context.Context
 	Database    *database.Database
 	Environment *environment.Environment
-	Ctx         context.Context
-	Controller  controller.Controller
-
-	cancel context.CancelFunc
+	Service     *service.Service
 }
 
-func NewEngine(router _interface.Router,
-	db *database.Database,
-	env *environment.Environment,
+func NewEngine(
 	ctx context.Context,
-	cancel context.CancelFunc) *Engine {
+	db *database.Database,
+	svc *service.Service,
+	env *environment.Environment,
+) *Engine {
 	return &Engine{
-		Router:      router,
+		Context:     ctx,
 		Database:    db,
+		Service:     svc,
 		Environment: env,
-		Ctx:         ctx,
-		cancel:      cancel,
 	}
 }
 
-func (e *Engine) Start() error {
-	return e.Router.Serve(e.Environment.AppPort)
-}
-
-func (e *Engine) Shutdown() {
+func (e *Engine) Shutdown(cancel context.CancelFunc) {
 	log.Println("shutdown ...")
-	e.cancel()
+	cancel()
 	_ = e.Database.Close()
 }

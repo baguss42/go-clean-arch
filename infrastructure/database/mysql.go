@@ -5,28 +5,28 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/lib/pq"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func NewPostgresql(config Config) *Database {
+func NewMysql(config Config) *Database {
 	if config.SSLMode != "" {
 		config.SSLMode = fmt.Sprintf("?sslmode=%s", config.SSLMode)
 	}
 
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s/%s%s",
+	connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		config.Username,
 		config.Password,
 		config.Host,
-		config.DBName,
-		config.SSLMode)
+		config.Port,
+		config.DBName)
 
-	db, err := sql.Open(postgres, connStr)
+	db, err := sql.Open(mysql, connStr)
 	if err != nil {
-		log.Fatal("could not open postgres database", err)
+		log.Fatal("could not open mysql database", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Fatal("could not connect postgres database", err)
+		log.Fatal("could not connect mysql database", err)
 	}
 
 	db.SetMaxOpenConns(config.MaxOpenConn)

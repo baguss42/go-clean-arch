@@ -1,4 +1,4 @@
-package controller
+package http_controller
 
 import (
 	"context"
@@ -11,6 +11,12 @@ import (
 type Product struct {
 	Service _interface.ProductServiceInterface
 	Ctx     context.Context
+}
+
+func (p Product) All(w http.ResponseWriter, r *http.Request) (int, error) {
+	// TODO: add all list
+
+	return WriteSuccess(w, http.StatusOK, "ok")
 }
 
 func (p Product) Create(w http.ResponseWriter, r *http.Request) (int, error) {

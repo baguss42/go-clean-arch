@@ -2,19 +2,19 @@ package controller
 
 import (
 	"context"
-	"github.com/baguss42/go-clean-arch/infrastructure/database"
+	controller "github.com/baguss42/go-clean-arch/controller/http_controller"
 	"github.com/baguss42/go-clean-arch/service"
 )
 
 type Controller struct {
-	Product
+	Product controller.Product
 }
 
-func NewController(ctx context.Context, db *database.Database) *Controller {
+func NewController(ctx context.Context, svc *service.Service) *Controller {
 	return &Controller{
-		Product{
-			Service: service.NewProductService(db),
+		Product: controller.Product{
 			Ctx:     ctx,
+			Service: svc.ProductService,
 		},
 	}
 }
