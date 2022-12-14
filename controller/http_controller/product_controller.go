@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/baguss42/go-clean-arch/entity/dto"
 	_interface "github.com/baguss42/go-clean-arch/interface"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -15,35 +14,9 @@ type Product struct {
 }
 
 func (p Product) All(w http.ResponseWriter, r *http.Request) (int, error) {
-	// TODO: remove this
-	resp, err := http.Get("http://localhost:9090/product")
-	if err != nil {
-		return WriteError(w, http.StatusInternalServerError, err)
-	}
+	// TODO: add all list
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return WriteError(w, http.StatusInternalServerError, err)
-	}
-
-	type Products struct {
-		Code int    `json:"code"`
-		Info string `json:"info"`
-		Data []struct {
-			ID          string `json:"id"`
-			Title       string `json:"title"`
-			Description string `json:"description"`
-			Price       string `json:"price"`
-			Qty         int    `json:"qty"`
-		} `json:"data"`
-	}
-
-	var result Products
-	if err = json.Unmarshal(body, &result); err != nil {
-		return WriteError(w, http.StatusInternalServerError, err)
-	}
-
-	return WriteSuccess(w, http.StatusOK, result.Data)
+	return WriteSuccess(w, http.StatusOK, "ok")
 }
 
 func (p Product) Create(w http.ResponseWriter, r *http.Request) (int, error) {
