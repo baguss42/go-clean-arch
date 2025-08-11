@@ -46,8 +46,18 @@ func (svc ProductService) Delete(ctx context.Context, id int64) error {
 }
 
 func (svc ProductService) Detail(ctx context.Context, id int64) (response dto.ProductResponse, err error) {
-	_, err = svc.Repo.Get(ctx, id)
-	return dto.ProductResponse{}, err
+	product, err := svc.Repo.Get(ctx, id)
+	if err != nil {
+		return dto.ProductResponse{}, err
+	}
+
+	return dto.ProductResponse{
+		ID:          product.ID,
+		Title:       product.Title,
+		Description: product.Description,
+		Price:       product.Price,
+		Qty:         product.Qty,
+	}, nil
 }
 
 func (svc ProductService) List(ctx context.Context, request dto.ListOption) (response dto.ProductResponse, err error) {
